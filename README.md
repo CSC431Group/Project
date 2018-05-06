@@ -2,14 +2,14 @@
 
 ### CSC 431 Final Project
 
-####### Shaurya Bandyopadhyay
-####### Sydney Beal
-####### Michael Bellissimo
-####### Natalia Escobar
-####### Timothy Manolias
-####### Tyler Reich
+###### Shaurya Bandyopadhyay
+###### Sydney Beal
+###### Michael Bellissimo
+###### Natalia Escobar
+###### Timothy Manolias
+###### Tyler Reich
 
-##### Description
+#### Description
 
 The purpose of this project was to create a user interface that allows different layers to be drawn onto a given map tile. These layers allow enhanced geotagging. 
 
@@ -30,12 +30,12 @@ Features implemented include:
 	- Electricity? (Y/N)
 
 
-##### Prerequisites
+#### Prerequisites
 
 There are currently no prerequisites to running this project.
 
 
-##### Installation
+#### Installation
 
 1. Download the repository
 2. Unzip
