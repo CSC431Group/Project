@@ -26,8 +26,13 @@ Features implemented include:
 - Ability to edit attributes of objects
   - Add names
   - Add properties
-	- Inhabited? (Y/N)
+	- Material?
+	  - Wood
+	  - Tin
+	  - Cement
+	  - Adobe
 	- Electricity? (Y/N)
+	- Water? (Y/N)
 
 
 #### Prerequisites
