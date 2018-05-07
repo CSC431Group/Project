@@ -145,10 +145,13 @@ function addFeature(){
   var geoObj = newFeature.toGeoJSON()
   var hasWater =$("#hasWater").val();
   var name =$("#name").val();
+  var material = $("#material").val();
+  var hasElectricity = $("#hasElectricity").val();
   geoObj.properties = {
     name : name,
-    hasWater : hasWater
-
+    material : material,
+    hasWater : hasWater,
+    hasElectricity: hasElectricity
   }
 
   firebase.database().ref('features/').push({
@@ -255,11 +258,15 @@ function rebindInfoPop(layerNumber){
 function editFeature(key){
   var hasWater =$("#hasWater").val();
   var name =$("#name").val();
+  var hasElectricity =$("#hasElectricity").val();
+  var material =$("#material").val();
 
 
   firebase.database().ref('features/'+key+'/geoObj/properties').set({
       name : name,
-      hasWater : hasWater
+      hasWater : hasWater,
+      hasElectricity : hasElectricity,
+      material : material
 
   });
 }
@@ -273,7 +280,9 @@ function drawFeature(key, featureInfo){
 
     Window.mapLayer.addLayer(L.geoJson(featureInfo.geometry));
     var layer = Window.mapLayer._layers[Object.keys(Window.mapLayer._layers)[Object.keys(Window.mapLayer._layers).length -1]]
-    var popupContent = '<div>Name: ' + featureInfo.properties.name + '</div><div>Has Access To Water: ' + featureInfo.properties.hasWater + ' </div><button type = "button" id = "editButton" style="margin-left: 110px; margin-top: 15px;" onclick="edit(`'  + key + '`,' + layer._leaflet_id + ')">Edit</button><button type = "button" id = "deleteButton" onclick="deleteFeature(`'  + key + '`)" style="display: inline; margin-left: 5px; margin-top: 00px;">Delete</button>';
+    var popupContent = '<div><strong>Name:</strong> ' + featureInfo.properties.name + '</div><div><strong>Material:</strong> ' + featureInfo.properties.material + '</div><div><strong>Has Access To Water: </strong>' + featureInfo.properties.hasWater +
+      '<div><strong>Has Electricty:</strong>  ' + featureInfo.properties.hasElectricity +
+      ' </div><button type = "button" id = "editButton" style="margin-left: 110px; margin-top: 15px;" onclick="edit(`'  + key + '`,' + layer._leaflet_id + ')">Edit</button><button type = "button" id = "deleteButton" onclick="deleteFeature(`'  + key + '`)" style="display: inline; margin-left: 5px; margin-top: 00px;">Delete</button>';
 
 
     layer.infoPop = popupContent;
