@@ -1,15 +1,23 @@
+// Get a reference to the database service
+var database = firebase.database();
+
+
+
+
 $(document).ready(function() {
   //Assign the map variable and the view to that variable
 
 
   var map = L.map('map').setView([41.7896, -87.5996], 15);
+  
   L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: '<a href="http://openstreetmap.org/copyright">OpenStreetMap Contributors</a>'
   }).addTo(map);
   //creates layers to draw on
-  var editableLayers = new L.FeatureGroup();
-  map.addLayer(editableLayers);
-
+  
+  Window.mapLayer = new L.FeatureGroup();
+  map.addLayer(Window.mapLayer);
+  Window.map = map;
   //options for the respective things
   var options = {
     //where it will go
@@ -29,7 +37,7 @@ $(document).ready(function() {
         allowIntersection: false, // Restricts shapes to simple polygons
         drawError: {
           color: '#e1e100', // Color the shape will turn when intersects
-          message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+          message: 'Warning intersection' // Message that will show when intersect
         },
         shapeOptions: {
           color: '#44FF43'
@@ -43,94 +51,197 @@ $(document).ready(function() {
 
     },
     //options for editing and deleting
-    edit: {
-      featureGroup: editableLayers, //REQUIRED!!
-      remove: true
-    }
+    edit: false,
+    delete: false
   };
+
+
+
+  //reads the data in
+  readMap();
+  
+
+
+
   //add the draw toolbar
   var drawControl = new L.Control.Draw(options);
   map.addControl(drawControl);
+
+
   //event handler for when you start drawing
   map.on(L.Draw.Event.CREATED, function (e) {
-    var type = e.layerType,
+    
+    var type = e.layerType;
     layer = e.layer;
-
-    var coords = layer._latlng;
-    console.log(coords);
+    Window.mapLayer.addLayer(layer);
+    var coords = layer._latlngs;
+    
     //var tempMarker = featureGroup.addLayer(e.layer);
-    var popupContent = '<form role="form" id="form" enctype="multipart/form-data" class = "form-horizontal" onsubmit="addMarker()">'+
+    var popupContent = '<form role="form" id="form" enctype="multipart/form-data" class = "form-horizontal">'+
     '<strong>Feature Information </strong><br>'+
+
     '<div class="form-group">'+
-    '<label class="control-label col-sm-5"><strong>Date Built: </strong></label>'+
-    '<input type="date" placeholder="Required" id="date" name="date" class="form-control"/>'+
+    '<label class="control-label col-sm-5"><strong>Name: </strong></label>'+
+    '<input type="text" min="0" class="form-control" id="name" name="name">'+
     '</div>'+
     '<div class="form-group">'+
-    '<label class="control-label col-sm-5"><strong>Material: </strong></label>'+
-    '<select class="form-control" id="material" name="material">'+
-    '<option value="Wood">Wood</option>'+
-    '<option value="Clay">Clay</option>'+
-    '<option value="Adobe">Adobe</option>'+
-    '<option value="Tin">Tin</option>'+
-    '<option value="Other">Other</option>'+
+    '<label class="control-label col-sm-5"><strong>Has Water: </strong></label>'+
+    '<select class="form-control" id="hasWater" name="hasWater">'+
+    '<option value="Yes">Yes</option>'+
+    '<option value="No">No</option>'+
     '</select>'+
     '</div>'+
-    '<div class="form-group">'+
-    '<label class="control-label col-sm-5"><strong>Capacity: </strong></label>'+
-    '<input type="number" min="0" class="form-control" id="capacity" name="capacity">'+
-    '</div>'+
+    
     //...
     '<div class="form-group">'+
-    '<label class="control-label col-sm-5"><strong>Description: </strong></label>'+
-    '<textarea class="form-control" rows="6" id="descrip" name="descript">...</textarea>'+
-    '</div>'+
-    '<input style="display: none;" type="text" id="lat" name="lat" value="'+coords.lat.toFixed(6)+'" />'+
-    '<input style="display: none;" type="text" id="lng" name="lng" value="'+coords.lng.toFixed(6)+'" />'+
-    '<div class="form-group">'+
-    '<div style="text-align:center;" class="col-xs-4 col-xs-offset-2"><button type="button" class="btn">Cancel</button></div>'+
+    
     '<div style="text-align:center;" class="col-xs-4"><button type="submit" value="submit" class="btn btn-primary trigger-submit">Submit</button></div>'+
     '</div>'+
     '</form>';
     layer.bindPopup(popupContent,{
       keepInView: true,
-      closeButton: false
+      closeButton: true
     }).openPopup();
 
-    $("#form").submit(function(e){
+    $("#form").submit(function(e)
+    {
       e.preventDefault();
-      console.log("didn't submit");
-      var date =$("#date").val();
-      console.log(date);
+      
+      
+      
+      layer._popup.remove();
+      layer.unbindPopup(popupContent);
+      addFeature()
+      
     });
-    // if (type === 'marker') {
-    //   layer.bindPopup('A popup!');
-    // }
-    // if (type === 'polygon') {
-    //   layer.bindPopup('A popup!');
-    // }
-    // if (type === 'polyline') {
-    //   layer.bindPopup('A popup!');
-    // }
-
-    editableLayers.addLayer(layer);
+    
+   
+    
+    
   });
-  //event handler for when you stop drawing
-  map.on(L.Draw.Event.DRAWSTOP, function (e) {
-    // get the new thing we've added
 
-    //window.tacos is for debugging
-    window.tacos = editableLayers._layers[Object.keys(editableLayers._layers)[Object.keys(editableLayers._layers).length -1]];
-
-    var newFeature = editableLayers._layers[Object.keys(editableLayers._layers)[Object.keys(editableLayers._layers).length -1]];
-    //print geoJSON rendition
-    console.log(newFeature.toGeoJSON());
-
-
-
-
-
-
-
-
-  })
 });
+  //event handler for when you stop drawing
+  
+function addFeature(){
+  var newFeature = Window.mapLayer._layers[Object.keys(Window.mapLayer._layers)[Object.keys(Window.mapLayer._layers).length -1]];
+      //print geoJSON rendition
+  var geoObj = newFeature.toGeoJSON()
+  var hasWater =$("#hasWater").val();
+  var name =$("#name").val();
+  geoObj.properties = {
+    name : name,
+    hasWater : hasWater
+    
+  }
+  
+  firebase.database().ref('features/').push({
+      geoObj
+  });
+}
+
+function readMap(){
+  //for each thing use drawThing function and have it link popUp
+  var featureRef = firebase.database().ref('features/');
+  featureRef.on('value', function(snapshot) {
+    
+    for (var key in snapshot.val()){
+      drawFeature(key, snapshot.val()[key].geoObj);
+    }
+
+  });
+}
+function edit(key, layerNumber){
+  
+  //add form as new popupcontent
+  var layer = Window.mapLayer._layers[layerNumber]
+  layer._popup.remove();
+  layer.unbindPopup();
+  
+
+  var popupContent = '<form role="form" id="form1" enctype="multipart/form-data" class = "form-horizontal">'+
+    'Edit Feature Information: <br>'+
+
+    '<div class="form-group">'+
+    '<label class="control-label col-sm-5"><strong>Name: </strong></label>'+
+    '<input type="text" min="0" class="form-control" id="name" name="name">'+
+    '</div>'+
+    '<div class="form-group">'+
+    '<label class="control-label col-sm-5"><strong>Has Water: </strong></label>'+
+    '<select class="form-control" id="hasWater" name="hasWater">'+
+    '<option value="Yes">Yes</option>'+
+    '<option value="No">No</option>'+
+    '</select>'+
+    '</div>'+
+    
+    //...
+    '<div class="form-group" style="text-align: right; margin-top: 10px;">'+
+    
+    '<button type="submit" value="submit" class="btn btn-primary style="display: inline; margin-top: 5px; margin-left: 100px;" trigger-submit">Submit</button>'+
+    '<button style="display: inline; margin-left: 5px;" onclick="rebindInfoPop(`'+ layerNumber + '`)">Cancel</button>'
+    '</div>'+
+    '</form>';   
+
+    
+      
+  layer.bindPopup(popupContent,{
+    keepInView: true,
+    closeButton: true
+  }).openPopup()
+
+
+  $("#form1").submit(function(e)
+    {
+      e.preventDefault();
+      
+      
+      
+      layer._popup.remove();
+      layer.unbindPopup(popupContent);
+      editFeature(key)
+      
+    });
+
+}
+
+function rebindInfoPop(layerNumber){
+  var layer = Window.mapLayer._layers[layerNumber]
+  
+    
+  
+  var layer = Window.mapLayer._layers[layerNumber]
+  layer._popup.setContent(layer.infoPop)
+  
+}
+function editFeature(key){
+  var hasWater =$("#hasWater").val();
+  var name =$("#name").val();
+  
+  
+  firebase.database().ref('features/'+key+'/geoObj/properties').set({
+      name : name,
+      hasWater : hasWater
+  });
+}
+function deleteFeature(key){
+  firebase.database().ref('features/'+key).remove();
+  location.reload();
+}
+
+function drawFeature(key, featureInfo){
+    
+    
+    Window.mapLayer.addLayer(L.geoJson(featureInfo.geometry));
+    var layer = Window.mapLayer._layers[Object.keys(Window.mapLayer._layers)[Object.keys(Window.mapLayer._layers).length -1]]
+    var popupContent = '<div>Name: ' + featureInfo.properties.name + '</div><div>Has Access To Water: ' + featureInfo.properties.hasWater + ' </div><button type = "button" id = "editButton" style="margin-left: 110px; margin-top: 15px;" onclick="edit(`'  + key + '`,' + layer._leaflet_id + ')">Edit</button><button type = "button" id = "deleteButton" onclick="deleteFeature(`'  + key + '`)" style="display: inline; margin-left: 5px; margin-top: 00px;">Delete</button>';
+    
+    
+    layer.infoPop = popupContent;  
+    layer.bindPopup(popupContent,{
+      keepInView: true,
+      closeButton: true
+    })
+}
+
+
+
